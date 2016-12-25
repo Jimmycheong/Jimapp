@@ -4,7 +4,8 @@ from PIL import Image, ImageTk
 
 import socket 
 import time 
-import _thread 
+from _thread import *
+import sys
 
 #WIDGET CREATION 
 #===##===##===##===##===##===##===##===#
@@ -49,48 +50,44 @@ def GUIrun(root):
 def change_username(string):
 	username.configure(text = string)
 
-def serverrun(clients, ser,root):
-	print ('Server has started')
-	ser.listen(3)
-	conn, addr = ser.accept()
-	print('Establishing connection with: ', addr)
 
-	conn.send(str.encode('Enter a username: '))
-	global username
-	user = conn.recv(1024).decode('utf-8')
-	change_username(user)
+def emessage():
+	mess = sys.stdin.readline('Enter: ')
+	return mess
 
-	while True:
-		print ("Clients: ", clients)
-		data = conn.recv(1024).decode('utf-8')
-		print ('s')
+
+def connector(ser,root, username, server):
+	print('Established connection with: ', server)
+#
+	ser.send(str.encode(usersname))
+	while True:				
+		message = emessage()
+		ser.send(str.encode(message))
+		data = ser.recv(1024).decode('utf-8')
 		if 'Quit' in str(data):
 			break 
-		if 'Finish' in str(data): 
-			print('Shutting Down.....\nPlease Wait a Moment')
-			ser.close()
-			root.quit()
-			exit()
-		if str(addr[1]) not in clients: 
-			clients.append(str(addr[1]))
-		print (time.ctime(time.time()) + str(addr) + " : :" + str(data.encode()))
-		for client in clients: 
-			conn.send(str.encode(data))
+#		if 'Finish' in str(data): 
+#			print('Shutting Down.....\nPlease Wait a Moment')
+#			ser.close()
+#			root.quit()
+#			exit()
+#		print (time.ctime(time.time()) + str(addr) + " : :" + str(data.encode()))#
+#		for client in clients: 
+#			conn.send(str.encode(data))
 	ser.close()
 	
 #===##===##===##===##===##===##===##===#
 
-#SERVER CODE:
+#Personal info:
 host = '127.0.0.1'
-print ('HOST: ',host)
-port = 5555
-#port = int(input("Select a port: "))
-clients = []
+port = 0 
+server = ('127.0.0.1', 5554)
+
+usersname = input('Enter a username:') 
 
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-print ('INFO: ' + host + ':' + str(port))
-s.bind((host,port))
+s.connect(server) 
 
 #Threading and Looping
-_thread.start_new_thread(serverrun, (clients, s,master,))
+start_new_thread(connector, (s,master,usersname, server))
 master.mainloop() 

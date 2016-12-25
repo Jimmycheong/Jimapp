@@ -55,36 +55,39 @@ class Imapp:
 def GUIrun(root): 
 	root.mainloop()
 
+def change_username(string, root):
+	root.username.configure(text = string)
+
 #BIND EVENTS 
 
 def serverrun(clients, ser,root):
 	print ('Server has started')
-	ser.listen(1)
+	ser.listen(3)
 	conn, addr = ser.accept()
-	print('connection established from: ', addr)
-	setting = True 
+	print('Establishing connection with: ', addr)
 
-	while setting:
+	conn.send(str.encode('Enter a username: '))
+	global username
+	user = conn.recv(1024).decode('utf-8')
+	change_username(user, root)
+
+	while True:
 		print ("Clients: ", clients)
-#		try: 
 		data = conn.recv(1024).decode('utf-8')
 		print ('s')
 		if 'Quit' in str(data):
 			break 
 		if 'Finish' in str(data): 
-			break
+			print('Shutting Down.....\nPlease Wait a Moment')
+			ser.close()
+			root.quit()
 			exit()
 		if str(addr[1]) not in clients: 
 			clients.append(str(addr[1]))
 		print (time.ctime(time.time()) + str(addr) + " : :" + str(data.encode()))
 		for client in clients: 
 			conn.send(str.encode(data))
-#		except:
-#			print ("Reached") 
-#			pass 
-	print('reached')
 	ser.close()
-	root.quit()
 
 
 #MOUSE event configuration 
@@ -99,17 +102,13 @@ print ('INFO: ' + host + ':' + str(port))
 s.bind((host,port))
 
 #Keyboard bind event configuration 
+global root
 root = Tk()
 my_app = Imapp(root)
 
 _thread.start_new_thread(serverrun, (clients, s,root,))
-#thr = threading.Thread(target = serverrun, args = (clients, s,))
-#thr2 = threading.Thread(target = GUIrun, args=(root,))
 
-#thr.start()
-#thr2.start() 
 root.mainloop()
-#thr.join()
-#thr2.join()
+
 
 

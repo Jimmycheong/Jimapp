@@ -49,11 +49,12 @@ def GUIrun(root):
 def change_username(string):
 	username.configure(text = string)
 
-def serverrun(clients, ser,root):
-	print ('Server has started')
-	ser.listen(3)
+def connector(ser,root):
 	conn, addr = ser.accept()
 	print('Establishing connection with: ', addr)
+
+	user = input('Enter a username:') 
+	conn.send(str.encode(user))
 
 	conn.send(str.encode('Enter a username: '))
 	global username
@@ -80,17 +81,13 @@ def serverrun(clients, ser,root):
 	
 #===##===##===##===##===##===##===##===#
 
-#SERVER CODE:
+#Personal info:
 host = '127.0.0.1'
-print ('HOST: ',host)
-port = 5555
-#port = int(input("Select a port: "))
-clients = []
+server = int(input("Select a port: "))
 
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-print ('INFO: ' + host + ':' + str(port))
-s.bind((host,port))
+s.connect()
 
 #Threading and Looping
-_thread.start_new_thread(serverrun, (clients, s,master,))
+_thread.start_new_thread(connector, (s,master,))
 master.mainloop() 
