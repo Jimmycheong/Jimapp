@@ -9,7 +9,7 @@ import sys
 
 host = '127.0.0.1'
 print ('HOST: ',host)
-port = 5554
+port = 5553
 #port = int(input("Select a port: "))
 clients = []
 
