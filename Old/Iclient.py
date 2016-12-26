@@ -8,9 +8,11 @@ import time
 from _thread import *
 import sys
 import threading
-import argparse
 
-def Main(username,server, changed):
+def Main(username,server):
+
+	host = '127.0.0.1'
+	port = 0 
 
 #WIDGET CREATION 
 #===##===##===##===##===##===##===##===#
@@ -197,15 +199,20 @@ def Main(username,server, changed):
 		rT.start()
 		print ("Receiving thread: started")
 
+	#Personal info:
+	host = '127.0.0.1'
+	port = 0 
+	server = ('127.0.0.1', 4001)
+	
 	root.mainloop() 
 
-if __name__ == '__main__': 
+if __name__ : '__main__': 
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--u", help = "Username")
 	parser.add_argument("--p", help = "Port number")
 	parser.add_argument("--a", help = "Address number")
-	args, changed = parser.parse_args(), False
+	args = parser.parse_args()
 
 	try: 
 		username = str(args.u)
@@ -220,12 +227,9 @@ if __name__ == '__main__':
 		port = int(args.p)
 	except:
 		port = 5000 
-	
+
 	server = (address,port,)
 
-	if username != 'Anonymous' or address != '127.0.0.1' and port != 5000: 
-		changed = True
-
-	Main(username,server, changed)
+	Main(username,server)
 
 
