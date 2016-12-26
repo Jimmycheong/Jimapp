@@ -186,7 +186,7 @@ def auth(my_app, store_username):
 #Personal info:
 host = '127.0.0.1'
 port = 0 
-server = ('127.0.0.1', 5552)
+server = ('127.0.0.1', 5557)
 
 
 root.mainloop() 

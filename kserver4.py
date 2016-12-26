@@ -26,7 +26,7 @@ def senddata(data, source):
 	for connex in connexs:
 		print ('Current client: ', connex.getpeername())
 #		connex.sendto(source.encode(),connex.getpeername())
-		print('Source: ', source)
+
 		connex.sendto(data.encode(),connex.getpeername())
 
 #===##===##===##===##===##===##===##===#
@@ -35,13 +35,8 @@ def senddata(data, source):
 
 def serverrun(conn, loop):
 	print ('Server has started')
-	Inner = True
 	print('Current Thread: ', threading.current_thread())
-	usersname=conn.recv(1024).decode('utf-8')
-	print ('Username added: ', usersname)
-	if usersname not in clients: 
-		clients.append(usersname)
-#		clients[usersname] = conn.getpeername()
+
 	while True:
 		data = conn.recv(1024).decode('utf-8')
 		print('Received data', data)
@@ -56,6 +51,11 @@ def serverrun(conn, loop):
 		source = conn.getpeername()
 		senddata(data, source)
 	s.close()
+	rejoin(threading.current_thread())
+
+def rejoin(inthread):
+	inthread.join()
+
 
 #===##===##===##===##===##===##===##===#
 #SERVER GO CODE
@@ -75,15 +75,20 @@ while Loop:
 	conn, addr = s.accept()
 	print('Establishing connection with: ', conn.getpeername())
 
-	if conn.getpeername() not in clients:
-		clients.append(conn.getpeername())
+	usersname=conn.recv(1024).decode('utf-8')
+	print ('Username added: ', usersname)
+	if usersname not in clients: 
+		clients.append(usersname)
+		#clients[usersname] = conn.getpeername()
 		connexs.append(conn)
-	print ('Clients:', clients)
 
+		print ('Clients:', clients)
 	#Threading and Looping
-	nT = threading.Thread(target = serverrun, args =(conn, Loop)) 
-	nT.daemon =True
-	nT.start() 
+		global nT
+		nT = threading.Thread(target = serverrun, args =(conn, Loop)) 
+		nT.daemon =True
+		nT.start() 
+	conn.close()
 
 
 
