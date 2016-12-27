@@ -192,16 +192,23 @@ def Main(username,server, changed):
 		print ("Receiving thread: started")
 
 	#===##===##===##===##===##===##===##===#
-	#Thread ZERO - GUI thread
+	#Thread ZERO - GUI
 	#===##===##===##===##===##===##===##===#
-	def gui_thread(): 
-		root.mainloop()
+	def create_threads(s,username): 
+		global cT, rT
+		cT = threading.Thread(target = connector, args = (s,my_app,username,c_shutdown))
+		rT = threading.Thread(target = receiver, args = (s,r_shutdown,username))
+		cT.start()
+		print ("Connecting thread: started") 
+		rT.start()
+		print ("Receiving thread: started")
+
 
 #===##===##===##===##===##===##===##===#
 #Main operations
 #===##===##===##===##===##===##===##===#
 
-	global root, my_app,c_shutdown, r_shutdown, gT
+	global root, my_app,c_shutdown, r_shutdown
 	root = Tk()
 	my_app = MainP(root)
 	my_app.top_frame.pack_forget()
@@ -215,12 +222,9 @@ def Main(username,server, changed):
 
 	if changed == True:			#If arguments are initial entered 
 		auth(my_app, username, server)
-		gT = threading.Thread(target = gui_thread, args = ())
-		gT.start()
+		root.mainloop() 
 	else:
-		gT = threading.Thread(target = gui_thread, args = ())
-		gT.start()
-	print ("GUI initialized: started") 
+		root.mainloop() 
 
 #===##===##===##===##===##===##===##===#
 #Terminal run code

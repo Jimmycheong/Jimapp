@@ -1,5 +1,6 @@
 from tkinter import * 
 from tkinter import ttk 
+from tkinter import messagebox
 from PIL import Image, ImageTk
 from lib2to3 import *
 
@@ -10,7 +11,17 @@ import sys
 import threading
 import argparse
 
-def Main(username,server, changed):
+
+def Main(username,address,port, changed):
+
+	if not username: 
+		username = 'Anon'
+	if not address:
+		address= "127.0.0.1"
+	if not port:
+		port= 5000 
+
+	server = (address,port,)
 
 #WIDGET CREATION 
 #===##===##===##===##===##===##===##===#
@@ -57,7 +68,6 @@ def Main(username,server, changed):
 					print ('Entered Username: ', store_user) 
 					print ('Entered Address: ', store_address)
 					print ('Entered Port', store_port)	
-#					auth(my_app, store_user, store_address, store_port)
 					auth(my_app, store_user, (store_address, store_port,))
 
 	#MAIN PROGRAM
@@ -104,11 +114,11 @@ def Main(username,server, changed):
 	#===##===##===##===##===##===##===##===#
 	#THREAD ONE - SENDER
 	#===##===##===##===##===##===##===##===#
-	def connector(ser,my_app,username,c_shutdown):	
+	def connector(ser,my_app,username,shutdown):	
 		print('Established connection with: ', server)
 		ser.send(str.encode(username))
 		print ('Username entered')
-		while not c_shutdown:	
+		while not shutdown:	
 	#		print ('Waiting...')
 			cLock.acquire()
 			if my_app.button_pressed: 
@@ -121,40 +131,28 @@ def Main(username,server, changed):
 				print ('Button pressed: ', my_app.button_pressed)
 				my_app.button_pressed = False
 			cLock.release()
-			time.sleep(0.5) 
-
-		r_shutdown = True
-		c_shutdown =True
-		cT.join()
-		rT.join()
-		ser.close()      
+			time.sleep(0.5)       
 
 	#===##===##===##===##===##===##===##===#
 	#THREAD TWO - RECEIVER
 	#===##===##===##===##===##===##===##===#
 
-	def receiver(sock, r_shutdown, username):
+	def receiver(sock, shutdown, username):
 	#	receive_existing_clients = sock.revfrom(1024)
-		while not r_shutdown:
+		while not shutdown:
 		  try:
 		  	rLock.acquire()
 		  	while True:
-		  		#sourcedata, saddr = sock.rev(1024)
-		  		#print('Sender name is: ', sourcedata.decode('utf-8'))
 		  		rdata, raddr = sock.recvfrom(1024)
 		  		print ('Received:', str(rdata.decode('utf-8')))
 		  		print ('FROM:', raddr)
 		  		my_app.texts.insert(END, '\n' + rdata.decode('utf-8') + '\n')
 		  		time.sleep(0.1)
+		  		qshut()
 		  except:
 		  	pass
 		  finally:
-		  	rLock.release()
-		r_shutdown = True
-		c_shutdown =True
-		cT.join()
-		rT.join()
-		ser.close()           
+		  	rLock.release()         
 
 	#===##===##===##===##===##===##===##===#
 
@@ -164,7 +162,7 @@ def Main(username,server, changed):
 	#After authentication
 	#===##===##===##===##===##===##===##===#
 	def auth(my_app, user,server):
-		
+		print ('Server form: ', server)
 		#Unpacking and packing new items
 		my_app.icanvas.pack_forget()
 		my_app.top_frame.pack()
@@ -174,6 +172,7 @@ def Main(username,server, changed):
 		my_app.username.configure(text=user) 
 		print ("Completed 1st section")
 
+		global s
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		s.connect(server)
 
@@ -184,7 +183,7 @@ def Main(username,server, changed):
 	#===##===##===##===##===##===##===##===#
 	def create_threads(s,username): 
 		global cT, rT
-		cT = threading.Thread(target = connector, args = (s,my_app,username,c_shutdown))
+		cT = threading.Thread(target = connector, args = (s,my_app,username))
 		rT = threading.Thread(target = receiver, args = (s,r_shutdown,username))
 		cT.start()
 		print ("Connecting thread: started") 
@@ -192,16 +191,30 @@ def Main(username,server, changed):
 		print ("Receiving thread: started")
 
 	#===##===##===##===##===##===##===##===#
-	#Thread ZERO - GUI thread
+	#Thread ZERO - GUI
 	#===##===##===##===##===##===##===##===#
-	def gui_thread(): 
-		root.mainloop()
+	def create_threads(s,username): 
+		global cT, rT
+		cT = threading.Thread(target = connector, args = (s,my_app,username))
+		rT = threading.Thread(target = receiver, args = (s,username))
+		cT.start()
+		print ("Connecting thread: started") 
+		rT.start()
+		print ("Receiving thread: started")
+
+	def exit_program():
+		if messagebox.askokcancel("Quit", "You want to quit now? *sniff*"):
+ 			root.destroy()
+
+	def qshut():
+		if reached == True:
+			rshut_down == True 
 
 #===##===##===##===##===##===##===##===#
 #Main operations
 #===##===##===##===##===##===##===##===#
 
-	global root, my_app,c_shutdown, r_shutdown, gT
+	global root, my_app, shutdown
 	root = Tk()
 	my_app = MainP(root)
 	my_app.top_frame.pack_forget()
@@ -210,17 +223,23 @@ def Main(username,server, changed):
 
 	input_username = "default"
 	input_address = "127.0.0.01" 
-	c_shutdown,r_shutdown = False, False
+	shutdown = False
 	cLock,rLock = threading.Lock(),threading.Lock()
 
 	if changed == True:			#If arguments are initial entered 
 		auth(my_app, username, server)
-		gT = threading.Thread(target = gui_thread, args = ())
-		gT.start()
 	else:
-		gT = threading.Thread(target = gui_thread, args = ())
-		gT.start()
-	print ("GUI initialized: started") 
+		pass
+	root.protocol("WM_DELETE_WINDOW", exit_program)
+	root.mainloop() 
+	print('BROKEN LOOP')
+#	s.close()
+#	print ('socket closed')
+	shutdown = True
+	print('Joined cT')
+	cT.join()
+	rT.join()
+	print('Joined RT')
 
 #===##===##===##===##===##===##===##===#
 #Terminal run code
@@ -235,23 +254,13 @@ if __name__ == '__main__':
 	args, changed = parser.parse_args(), False
 
 	try: 
-		username = str(args.u)
+		args.p = int(args.p)
 	except:
-		username = 'Anonymous'
-	try: 
-		address = str(args.a)
-	except:
-		address = '127.0.0.1' 
-	try: 
-		port = int(args.p)
-	except:
-		port = 5000 
-	
-	server = (address,port,)
+		pass
 
-	if username != 'Anonymous' or address != '127.0.0.1' and port != 5000: 
+	if args.u or args.a or args.p: 
 		changed = True
 
-	Main(username,server, changed)
+	Main(args.u,args.a,args.p, changed)
 
 

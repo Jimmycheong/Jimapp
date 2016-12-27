@@ -21,6 +21,7 @@ def Main(host,port):
 
 	def senddata(data):
 		print ('<===SENDING===>')
+		print ('LISTEN TO THE CLIENTS:', clients)
 		for connex in connexs: 
 			print ('Current connex: ',connex) 
 			for dclient in clients: 
@@ -45,14 +46,19 @@ def Main(host,port):
 		print ('#==============#')
 		while True:
 			data = conn.recv(1024).decode('utf-8')
-			splat = data.split('::')
-			print('Received data: from {}'.format(splat[0]) + '\nAt '+ time.ctime(time.time()) + ':: ', splat[1])
-			if 'Quit' in str(splat[1]):
-				break 
-			if 'Finish' in str(splat[1]): 
-				print('Shutting Down.....\nPlease Wait a Moment')
-				s.close()
-				break
+			if data == '':
+				connexs.remove(conn)
+				clients.pop(joiner)
+			else: 
+				print ('RECIEVED DATA: [' + data + ']')
+				splat = data.split('::')
+				print('Received data: from {}'.format(splat[0]) + '\nAt '+ time.ctime(time.time()) + '::', splat[1])
+				if 'Quit' in str(splat[1]):
+					break 
+				if 'Finish' in str(splat[1]): 
+					print('Shutting Down.....\nPlease Wait a Moment')
+					s.close()
+					break
 			senddata(data)
 		s.close()
 
