@@ -6,7 +6,7 @@
 - Time taken to build version 1: 2 days 
 - Requires installation of following Python modules: tkinter, pillow 
 
-Main Graphical User Interface
+# Main Graphical User Interface
 ![screen shot 2016-12-30 at 16 41 48](https://cloud.githubusercontent.com/assets/22529514/21568752/f48598aa-ceae-11e6-8959-2a271a2d8f58.jpg)
 
 # How does it work? 
