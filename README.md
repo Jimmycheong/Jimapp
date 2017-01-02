@@ -23,7 +23,7 @@ To connect to the server, the user inputs their username, along with the IP and 
 - How to use bind sockets to create connections (using the Socket module)
 - How to build a program that runs multiple tasks (using the multithreading module) 
 - Awareness of variable scope during data sharing. 
-- How to specify postiional/optional arguments when running script at command line (using the argparse)
+- How to specify postional/optional arguments when running script at command line (using the argparse)
 - How to use the build structure code using the if __name__ == '__main__' notation. 
 
 #Future tasks: 
