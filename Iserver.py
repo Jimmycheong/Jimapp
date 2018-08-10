@@ -1,109 +1,60 @@
-import socket 
-import time 
-from _thread import *
-import sys
-import threading
+"""Iserver.py
+
+This file contains code to create a server.
+
+"""
 import argparse
+from time import sleep
 
-#===##===##===##===##===##===##===##===#
-#SERVER INFO
-#===##===##===##===##===##===##===##===#
+from classes import ServerHost, ConnectedClient
+from methods import FILLER_BAR, spawn_serving_thread
 
-def Main(host,port):
 
-	print('#=================#\nServer has started\n')
-	print ('Hosting on: ' + host + ':' + str(port) + '\n#=================#')
-	clients, connexs ={}, [] 
+def main(host: str, port: int):
+    global server_host
+    server_host = ServerHost(host, port, 3)
+    server_host.setup_listening_thread()
+    print('Waiting for connection.....')
 
-	#===##===##===##===##===##===##===##===#
-	#BROADCAST
-	#===##===##===##===##===##===##===##===#
+    print(f"""
+    {FILLER_BAR} \n
+    Server has started
+    Hosting on: {server_host.address}\n
+    {FILLER_BAR}
+    """)
 
-	def senddata(data):
-		print ('<===SENDING===>')
-		print ('LISTEN TO THE CLIENTS:', clients)
-		for connex in connexs: 
-			print ('Current connex: ',connex) 
-			for dclient in clients: 
-				if dclient == connex.getpeername():
-					connex.sendto(str.encode(data),dclient)
-		print ('<===COMPLETE===>')
+    while True:
+        try:
+            conn, addr = server_host.listener.accept()
+            print('Establishing connection with: ', conn.getpeername())
 
-	#===##===##===##===##===##===##===##===#
-	#INDIVIDUAL THREAD OPERATION
-	#===##===##===##===##===##===##===##===#
+            new_client = ConnectedClient(conn)
 
-	def serving_thread(conn, loop):
-		print ('#==============#')
-		print('New Thread: ', threading.current_thread())
-		print ('Connection established')
-		usersname=conn.recv(1024).decode('utf-8')
-		print ('Username added: ', usersname)
-		joiner = conn.getpeername()
-		if joiner not in clients:
-			clients[joiner] = usersname
-		print ('Clients:', clients)
-		print ('#==============#')
-		while True:
-			data = conn.recv(1024).decode('utf-8')
-			if data == '':
-				connexs.remove(conn)
-				clients.pop(joiner)
-			else: 
-				print ('RECIEVED DATA: [' + data + ']')
-				splat = data.split('::')
-				print('Received data: from {}'.format(splat[0]) + '\nAt '+ time.ctime(time.time()) + '::', splat[1])
-				if 'Quit' in str(splat[1]):
-					break 
-				if 'Finish' in str(splat[1]): 
-					print('Shutting Down.....\nPlease Wait a Moment')
-					s.close()
-					break
-			senddata(data)
-		s.close()
+            # TODO: Add debug if client does not exists in the server_host's client list
+            if new_client not in server_host.clients:
+                server_host.clients.append(new_client)
+                new_client.serving_thread = spawn_serving_thread(server_host, new_client)
 
-	#===##===##===##===##===##===##===##===#
-	#SERVER GO CODE
-	#===##===##===##===##===##===##===##===#
+        except (KeyboardInterrupt, SystemExit):
+            server_host.listener.close()
+        sleep(0.5)
 
-	global s
-	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	print ('INFO: ' + host + ':' + str(port))
-	s.bind((host,port))
 
-	s.listen(3)
-	print ('Waiting for connection.....')
+if __name__ == '__main__':
 
-	Loop = True
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--p", help="Port number")
+    parser.add_argument("--a", help="Address number")
+    args = parser.parse_args()
 
-	while Loop: 
-		conn, addr = s.accept()
-		print('Establishing connection with: ', conn.getpeername())
-		connexs.append(conn)
+    try:
+        port = int(args.p)
+    except:
+        port = 5000
 
-		#Generating and starting new thread
-		nT = threading.Thread(target = serving_thread, args =(conn, Loop)) 
-		nT.daemon =True
-		nT.start() 
+    try:
+        address = str(args.a)
+    except:
+        address = '127.0.0.1'
 
-#===##===##===##===##===##===##===##===#
-#Terminal run code 
-#===##===##===##===##===##===##===##===#
-
-if __name__ == '__main__': 
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--p", help = "Port number")
-	parser.add_argument("--a", help = "Address number")
-	args = parser.parse_args()
-
-	try: 
-		port = int(args.p)
-	except:
-		port = 5000 
-	try: 
-		address = str(args.a)
-	except:
-		address = '127.0.0.1' 
-
-	Main(address,port) 
-
+    main(address, port)
