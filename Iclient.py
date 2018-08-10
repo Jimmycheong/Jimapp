@@ -1,14 +1,14 @@
 # VERSION 1_8
 
+import time
+
 import argparse
 import socket
 import threading
-import time
+from PIL import Image, ImageTk
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
-
-from PIL import Image, ImageTk
 
 
 def Main(username, address, port, changed):

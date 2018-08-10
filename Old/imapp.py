@@ -10,7 +10,7 @@ import threading
 
 def serverrun(clients, ser):
 	print ('Server has started')
-	ser.listen(1)
+	ser.start_listening(1)
 	while True:
 		try: 
 			data,addr = s.recv(1024).decode('utf-8')
@@ -78,7 +78,7 @@ class Imapp:
 
 			def serverrun(clients, ser):
 				print ('Server has started')
-				ser.listen(1)
+				ser.start_listening(1)
 				while True:
 					try: 
 						data,addr = s.recv(1024).decode('utf-8')

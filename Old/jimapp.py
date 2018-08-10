@@ -51,7 +51,7 @@ def change_username(string):
 
 def serverrun(clients, ser,root):
 	print ('Server has started')
-	ser.listen(3)
+	ser.start_listening(3)
 	conn, addr = ser.accept()
 	print('Establishing connection with: ', addr)
 

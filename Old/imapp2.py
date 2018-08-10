@@ -58,7 +58,7 @@ def GUIrun(root):
 
 def serverrun(clients, ser):
 	print ('Server has started')
-	ser.listen(1)
+	ser.start_listening(1)
 	conn, addr = ser.accept()
 	print('connection established from: ', addr)
 	setting = True 

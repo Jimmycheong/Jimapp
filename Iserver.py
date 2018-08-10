@@ -3,42 +3,31 @@
 This file contains code to create a server.
 
 """
-import argparse
-from time import sleep
 
-from classes import ServerHost, ConnectedClient
-from methods import FILLER_BAR, spawn_serving_thread
+import argparse
+
+from classes import ServerHost
+from methods import FILLER_BAR
 
 
 def main(host: str, port: int):
     global server_host
     server_host = ServerHost(host, port, 3)
-    server_host.setup_listening_thread()
-    print('Waiting for connection.....')
-
+    server_host.setup_listening_socket()
     print(f"""
     {FILLER_BAR} \n
     Server has started
     Hosting on: {server_host.address}\n
+    
+    Ready to serve.....
     {FILLER_BAR}
     """)
 
-    while True:
-        try:
-            conn, addr = server_host.listener.accept()
-            print('Establishing connection with: ', conn.getpeername())
+    try:
+        server_host.start_listening()
 
-            new_client = ConnectedClient(conn)
-
-            # TODO: Add debug if client does not exists in the server_host's client list
-            if new_client not in server_host.clients:
-                server_host.clients.append(new_client)
-                new_client.serving_thread = spawn_serving_thread(server_host, new_client)
-
-        except (KeyboardInterrupt, SystemExit):
-            server_host.listener.close()
-        sleep(0.5)
-
+    except (SystemExit):
+        print("Shutting down server host...")
 
 if __name__ == '__main__':
 
